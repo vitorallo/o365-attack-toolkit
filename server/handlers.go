@@ -7,11 +7,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"o365-attack-toolkit/api"
-	"o365-attack-toolkit/database"
-	"o365-attack-toolkit/model"
 	"os"
 	"path/filepath"
+
+	"github.com/vitorallo/o365-attack-toolkit/api"
+	"github.com/vitorallo/o365-attack-toolkit/database"
+	"github.com/vitorallo/o365-attack-toolkit/model"
 
 	"github.com/gorilla/mux"
 )

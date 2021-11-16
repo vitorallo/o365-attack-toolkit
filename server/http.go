@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"o365-attack-toolkit/api"
-	"o365-attack-toolkit/model"
+
+	"github.com/vitorallo/o365-attack-toolkit/api"
+	"github.com/vitorallo/o365-attack-toolkit/model"
 
 	"github.com/gorilla/mux"
 )

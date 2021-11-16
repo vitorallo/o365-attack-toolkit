@@ -3,7 +3,8 @@ package database
 import (
 	_ "database/sql"
 	"log"
-	"o365-attack-toolkit/model"
+
+	"github.com/vitorallo/o365-attack-toolkit/model"
 
 	_ "github.com/mattn/go-sqlite3"
 )

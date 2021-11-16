@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"o365-attack-toolkit/database"
-	"o365-attack-toolkit/model"
 	"strings"
+
+	"github.com/vitorallo/o365-attack-toolkit/database"
+	"github.com/vitorallo/o365-attack-toolkit/model"
 )
 
 // SendEmail will send an email using the api

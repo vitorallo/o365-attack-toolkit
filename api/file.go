@@ -6,9 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"o365-attack-toolkit/model"
 	"os"
 	"path/filepath"
+
+	"github.com/vitorallo/o365-attack-toolkit/model"
 )
 
 func renameFile(user model.User, id string, filename string) {

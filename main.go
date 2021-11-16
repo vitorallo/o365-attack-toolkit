@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"o365-attack-toolkit/model"
-	"o365-attack-toolkit/server"
 	"os"
 	"path/filepath"
+
+	"github.com/vitorallo/o365-attack-toolkit/model"
+	"github.com/vitorallo/o365-attack-toolkit/server"
 
 	_ "github.com/mattn/go-sqlite3"
 	"gopkg.in/gcfg.v1"

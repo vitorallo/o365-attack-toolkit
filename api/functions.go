@@ -8,9 +8,10 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"o365-attack-toolkit/database"
-	"o365-attack-toolkit/model"
 	"time"
+
+	"github.com/vitorallo/o365-attack-toolkit/database"
+	"github.com/vitorallo/o365-attack-toolkit/model"
 )
 
 // RefreshAccessToken will retrieve a new access token
