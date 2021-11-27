@@ -2,12 +2,9 @@ package main
 
 import (
 	_ "database/sql"
-	"encoding/json"
+	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/vitorallo/o365-attack-toolkit/model"
 	"github.com/vitorallo/o365-attack-toolkit/server"
@@ -16,21 +13,40 @@ import (
 	"gopkg.in/gcfg.v1"
 )
 
+var config_file = flag.String("c", "template.conf", "Configuration template")
+var ext_server_up = flag.Bool("e", false, "Bring up the External server")
+var int_server_up = flag.Bool("i", false, "Bring up the Internal server")
+var debug_mode = flag.Bool("d", false, "Enable debug mode")
+
 func main() {
 
+	flag.Parse()
+
 	model.GlbConfig = model.Config{}
-	err := gcfg.ReadFileInto(&model.GlbConfig, "template.conf")
+	err := gcfg.ReadFileInto(&model.GlbConfig, *config_file)
 
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	//initializeRules()
-	go server.StartExtServer(model.GlbConfig)
-	server.StartIntServer(model.GlbConfig)
-	fmt.Println(model.GlbConfig)
+	if *ext_server_up {
+		fmt.Println("OAuth token redirect URI: ", model.GlbConfig.Oauth.Redirecturi)
+		go server.StartExtServer(model.GlbConfig)
+	} else {
+		fmt.Println("Starting up with no external server...")
+	}
+
+	if *int_server_up {
+		go server.StartIntServer(model.GlbConfig)
+	} else {
+		fmt.Println("Starting up with no internal server...")
+	}
+
+	//fmt.Println(model.GlbConfig)
 }
 
+/**
 func initializeRules() {
 
 	var ruleFiles []string
@@ -67,3 +83,4 @@ func initializeRules() {
 
 	log.Printf("Loaded %d rules successfully.", len(model.GlbRules))
 }
+**/
