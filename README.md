@@ -46,9 +46,16 @@ Users document hosted on OneDrive/Sharepoint can be modified by using the Graph 
 ### Compile
 
 ```
+<<<<<<< HEAD
 git clone https://github.com/vitorallo/o365-attack-toolkit
 cd o365-attack-toolkit
 go mod tidy
+=======
+cd %GOPATH%
+git clone https://github.com/vitorallo/o365-attack-toolkit
+cd o365-attack-toolkit
+(fix modules)
+>>>>>>> 763583ecdfef8d9787258d0a9ddc5fb3c1ecb36e
 go build
 ```
 
