@@ -61,11 +61,12 @@ func StartIntServer(config model.Config) {
 }
 
 func StartExtServer(config model.Config) {
-	api.GenerateURL()
+	url := api.GenerateURL()
+	log.Printf("phishing URL: %v", url)
 	log.Printf("Starting External Server on %s:%d \n", config.Server.Host, config.Server.ExternalPort)
 	route := mux.NewRouter()
 	route.HandleFunc(model.ExtTokenPage, GetToken).Methods("GET")
-	//route.PathPrefix(model.ExtMainPage).Handler(http.FileServer(http.Dir("./static/")))
+	route.PathPrefix(model.ExtMainPage).Handler(http.FileServer(http.Dir("./static/")))
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", config.Server.Host, config.Server.ExternalPort),
 		Handler: route,

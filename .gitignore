@@ -5,3 +5,4 @@ downloads/*.*
 *.exe
 vendor/
 *pwn*.db
+template.conf

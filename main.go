@@ -31,14 +31,14 @@ func main() {
 
 	//initializeRules()
 	if *ext_server_up {
-		fmt.Println("OAuth token redirect URI: ", model.GlbConfig.Oauth.Redirecturi)
+		log.Println("OAuth token redirect URI:", model.GlbConfig.Oauth.Redirecturi)
 		go server.StartExtServer(model.GlbConfig)
 	} else {
 		fmt.Println("Starting up with no external server...")
 	}
 
 	if *int_server_up {
-		go server.StartIntServer(model.GlbConfig)
+		server.StartIntServer(model.GlbConfig)
 	} else {
 		fmt.Println("Starting up with no internal server...")
 	}
