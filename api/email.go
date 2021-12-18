@@ -3,9 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/vitorallo/o365-attack-toolkit/database"
 	"github.com/vitorallo/o365-attack-toolkit/model"

@@ -1,18 +1,22 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Config struct {
 	Server struct {
 		Host         string
 		ExternalPort int
 		InternalPort int
+		ApiPort      int
 	}
 	Oauth struct {
 		ClientId     string
 		ClientSecret string
 		Scope        string
 		Redirecturi  string
+		RefreshTime  time.Duration
 	}
 }
 

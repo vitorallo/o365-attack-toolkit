@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/vitorallo/o365-attack-toolkit/api"
 	"github.com/vitorallo/o365-attack-toolkit/database"

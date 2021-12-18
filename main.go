@@ -4,8 +4,10 @@ import (
 	_ "database/sql"
 	"flag"
 	"fmt"
-	"log"
 
+	//"github.com/sirupsen/logrus"
+
+	"github.com/vitorallo/o365-attack-toolkit/logging"
 	"github.com/vitorallo/o365-attack-toolkit/model"
 	"github.com/vitorallo/o365-attack-toolkit/server"
 
@@ -13,34 +15,44 @@ import (
 	"gopkg.in/gcfg.v1"
 )
 
-var config_file = flag.String("c", "template.conf", "Configuration template")
-var ext_server_up = flag.Bool("e", false, "Bring up the External server")
-var int_server_up = flag.Bool("i", false, "Bring up the Internal server")
-var debug_mode = flag.Bool("d", false, "Enable debug mode")
+var (
+	configFile  = flag.String("c", "template.conf", "Configuration template")
+	LogOutput   = flag.String("o", "", "Write session and logs to a file")
+	IntServerUp = flag.Bool("i", true, "Enable internal HTTP GUI server <default: true>")
+	ApiServerUp = flag.Bool("a", false, "Enable REST API GUI server <default: false>")
+	debug_mode  = flag.String("d", "error", "Set debug level <error: default, debug, trace>")
+)
 
 func main() {
 
 	flag.Parse()
 
 	model.GlbConfig = model.Config{}
-	err := gcfg.ReadFileInto(&model.GlbConfig, *config_file)
+	err := gcfg.ReadFileInto(&model.GlbConfig, *configFile)
 
 	if err != nil {
-		log.Fatal(err.Error())
+		fmt.Printf("Fatal error reding config file: %v", err.Error())
+		return
 	}
+
+	//setting logging environment
+	Log := logging.NewLogger(*debug_mode)
+	Log.Trace(model.GlbConfig)
 
 	//initializeRules()
-	if *ext_server_up {
-		log.Println("OAuth token redirect URI:", model.GlbConfig.Oauth.Redirecturi)
-		go server.StartExtServer(model.GlbConfig)
-	} else {
-		fmt.Println("Starting up with no external server...")
-	}
 
-	if *int_server_up {
-		server.StartIntServer(model.GlbConfig)
+	//staring external server
+	Log.Debug("Starting with oauth token redirect URI: ", model.GlbConfig.Oauth.Redirecturi)
+	go server.StartExtServer(model.GlbConfig, logging.GetLogger())
+
+	if *ApiServerUp {
+		Log.Debug("Starting REST API GUI")
+		server.StartAPIServer(model.GlbConfig, logging.GetLogger())
+	} else if !*IntServerUp {
+		Log.Fatal("Internal or API GUI, one of the two must be enabled!")
 	} else {
-		fmt.Println("Starting up with no internal server...")
+		Log.Debug("Starting internal HTTP GUI")
+		server.StartIntServer(model.GlbConfig)
 	}
 
 	//fmt.Println(model.GlbConfig)

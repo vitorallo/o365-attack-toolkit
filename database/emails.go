@@ -2,7 +2,8 @@ package database
 
 import (
 	_ "database/sql"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/vitorallo/o365-attack-toolkit/model"
